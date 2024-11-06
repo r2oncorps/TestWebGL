@@ -9817,17 +9817,18 @@ var ASM_CONSTS = {
           var input = document.getElementById("nativeKeyboardInput");
           if (input) {
               console.log("closeNativeKeyboard에서 input 요소를 찾음 - 가상 키보드 닫기 시작");
-              input.style.display = "none"; // 키보드를 닫기 위해 input을 숨김
-              input.blur();  // 가상 키보드 닫기
+              input.style.display = "none";
+              input.blur();
               setTimeout(function() {
                   if (document.body.contains(input)) {
                       console.log("input 요소가 존재하여 제거됨");
                       document.body.removeChild(input);
                   }
-              }, 100); // 약간의 지연 후 제거
+              }, 100);
           } else {
               console.log("closeNativeKeyboard에서 input 요소를 찾지 못함");
           }
+          this.isKeyboardOpen = false; // 키보드 닫힘 상태로 설정
       }
 
   var readAsmConstArgsArray = [];
@@ -15437,14 +15438,22 @@ var ASM_CONSTS = {
     }
 
   function _showNativeKeyboard() {
-          // 이미 존재하는 가상 키보드용 input 요소가 있으면 제거
+          if (this.isKeyboardOpen) {
+              console.log("키보드가 이미 열려 있음");
+              return; // 이미 키보드가 열려 있으면 함수 종료
+          }
+  
           console.log("showNativeKeyboard 호출됨");
+          this.isKeyboardOpen = true; // 키보드 열림 상태로 설정
+  
+          // 기존 input 요소 제거
           var existingInput = document.getElementById("nativeKeyboardInput");
           if (existingInput) {
               console.log("기존 input 요소가 발견되어 제거됨");
               document.body.removeChild(existingInput);
           }
   
+          // 새로운 input 요소 생성 및 설정
           var input = document.createElement("input");
           input.type = "text";
           input.id = "nativeKeyboardInput";
@@ -15455,27 +15464,35 @@ var ASM_CONSTS = {
           input.focus();
           console.log("새로운 input 요소 생성 및 포커스 설정");
   
-          // 가상 키보드 닫기 함수 정의
+          // 입력 발생 시 Unity로 데이터 전송
+          input.addEventListener("input", function() {
+              var inputValue = input.value;
+              console.log("입력 감지 - Unity로 전달:", inputValue);
+              unityInstance.SendMessage('GameManager', 'ReceiveInput', inputValue);
+          });
+  
+          // 외부 터치 시 키보드를 닫기 위한 이벤트 리스너
           function closeKeyboard() {
               if (input) {
                   console.log("closeKeyboard 호출됨 - 가상 키보드를 닫는 중");
-                  input.style.display = "none"; // 키보드를 확실히 닫기 위해 input을 숨김
-                  input.blur();  // 가상 키보드 닫기
+                  input.style.display = "none";
+                  input.blur();
                   setTimeout(function() {
                       if (document.body.contains(input)) {
                           console.log("input 요소가 존재하여 제거됨");
-                          document.body.removeChild(input);  // 입력 필드 제거
+                          document.body.removeChild(input);
                       }
-                  }, 100); // 약간의 지연을 준 후 제거하여 가상 키보드가 완전히 닫히도록 함
+                  }, 100);
   
-                  document.removeEventListener("touchstart", outsideClickListener);  // 외부 클릭 이벤트 제거
-                  console.log("외부 클릭 이벤트 리스너 제거됨");
+                  document.removeEventListener("touchstart", outsideClickListener);
+                  this.isKeyboardOpen = false; // 키보드 닫힘 상태로 설정
+                  console.log("외부 터치 이벤트 리스너 제거됨 및 키보드 닫힘 상태 설정");
               }
           }
   
-          // 외부 클릭 시 키보드를 닫기 위한 이벤트 리스너
+          // 외부 터치 시 키보드를 닫기 위한 이벤트 리스너
           function outsideClickListener(event) {
-              console.log("외부 영역 클릭 감지:", event.target);
+              console.log("외부 영역 터치 감지:", event.target);
   
               if (event.target !== input) {
                   console.log("키보드를 닫습니다.");
@@ -15484,9 +15501,8 @@ var ASM_CONSTS = {
               }
           }
   
-          // 이벤트 리스너 추가
           document.addEventListener("touchstart", outsideClickListener);
-          console.log("외부 클릭 이벤트 리스너 추가됨");
+          console.log("외부 터치 이벤트 리스너 추가됨");
       }
 
   function __isLeapYear(year) {
