@@ -9814,21 +9814,25 @@ var ASM_CONSTS = {
 
   function _closeNativeKeyboard() {
           console.log("closeNativeKeyboard 호출됨");
-          var input = document.getElementById("nativeKeyboardInput");
-          if (input) {
+          if (this.nativeKeyboardInput) {
               console.log("closeNativeKeyboard에서 input 요소를 찾음 - 가상 키보드 닫기 시작");
-              input.style.display = "none";
-              input.blur();
-              setTimeout(function() {
-                  if (document.body.contains(input)) {
-                      console.log("input 요소가 존재하여 제거됨");
-                      document.body.removeChild(input);
-                  }
-              }, 100);
+              this.nativeKeyboardInput.style.display = "none";
+              this.nativeKeyboardInput.blur();
+              console.log("input 요소 숨김 및 블러 처리");
           } else {
               console.log("closeNativeKeyboard에서 input 요소를 찾지 못함");
           }
-          this.isKeyboardOpen = false; // 키보드 닫힘 상태로 설정
+  
+          // 이벤트 리스너 제거
+          if (this.outsideClickListener) {
+              document.removeEventListener("touchstart", this.outsideClickListener);
+              document.removeEventListener("click", this.outsideClickListener);
+              this.outsideClickListener = null;
+              console.log("외부 클릭/터치 이벤트 리스너 제거됨");
+          }
+  
+          this.isKeyboardOpen = false;
+          console.log("키보드 상태를 닫힘으로 설정, 현재 상태:", this.isKeyboardOpen);
       }
 
   var readAsmConstArgsArray = [];
@@ -15438,59 +15442,67 @@ var ASM_CONSTS = {
     }
 
   function _showNativeKeyboard() {
+          console.log("showNativeKeyboard 함수 호출됨, 현재 상태:", this.isKeyboardOpen);
+          
           if (this.isKeyboardOpen) {
-              console.log("키보드가 이미 열려 있음");
-              return; // 이미 키보드가 열려 있으면 함수 종료
+              console.log("키보드가 이미 열려 있음, 함수 종료");
+              return;
           }
   
-          console.log("showNativeKeyboard 호출됨");
-          this.isKeyboardOpen = true; // 키보드 열림 상태로 설정
-          this.firstClickIgnored = true; // 최초 클릭은 무시
+          if (!this.nativeKeyboardInput) {
+              // 인풋 요소가 없는 경우에만 새로 생성
+              this.nativeKeyboardInput = document.createElement("input");
+              this.nativeKeyboardInput.type = "text";
+              this.nativeKeyboardInput.id = "nativeKeyboardInput";
+              this.nativeKeyboardInput.style.position = "absolute";
+              this.nativeKeyboardInput.style.top = "-100px";
+              this.nativeKeyboardInput.style.opacity = 0;
+              document.body.appendChild(this.nativeKeyboardInput);
   
-          // 기존 input 요소 제거
-          var existingInput = document.getElementById("nativeKeyboardInput");
-          if (existingInput) {
-              console.log("기존 input 요소가 발견되어 제거됨");
-              document.body.removeChild(existingInput);
+              // 입력 발생 시 Unity로 데이터 전송
+              this.nativeKeyboardInput.addEventListener("input", function() {
+                  var inputValue = this.nativeKeyboardInput.value;
+                  console.log("입력 감지 - Unity로 전달:", inputValue);
+                  window.unityInstanceRef.SendMessage('GameManager', 'ReceiveInput', inputValue);
+              }.bind(this));
+  
+              console.log("새로운 input 요소 생성");
+          } else {
+              console.log("기존 input 요소 재사용");
           }
   
-          // 새로운 input 요소 생성 및 설정
-          var input = document.createElement("input");
-          input.type = "text";
-          input.id = "nativeKeyboardInput";
-          input.style.position = "absolute";
-          input.style.top = "-100px";  // 화면에 보이지 않게 위치 설정
-          input.style.opacity = 0;
-          document.body.appendChild(input);
-          input.focus();
-          console.log("새로운 input 요소 생성 및 포커스 설정");
+          this.nativeKeyboardInput.style.display = "block";
+          this.nativeKeyboardInput.focus();
+          console.log("input 요소에 포커스 설정");
   
-          // 입력 발생 시 Unity로 데이터 전송
-          input.addEventListener("input", function() {
-              var inputValue = input.value;
-              console.log("입력 감지 - Unity로 전달:", inputValue);
-              window.unityInstanceRef.SendMessage('GameManager', 'ReceiveInput', inputValue);
-          });
+          this.isKeyboardOpen = true;
+          this.firstClickIgnored = true;
   
-          // 외부 클릭 시 키보드를 닫기 위한 이벤트 리스너
-          function outsideClickListener(event) {
+          // 기존 리스너 제거
+          if (this.outsideClickListener) {
+              document.removeEventListener("touchstart", this.outsideClickListener);
+              document.removeEventListener("click", this.outsideClickListener);
+          }
+  
+          // 새로운 외부 클릭 이벤트 리스너
+          this.outsideClickListener = function(event) {
+              console.log("외부 영역 클릭/터치 감지:", event.target);
               if (this.firstClickIgnored) {
                   console.log("최초 클릭 무시");
-                  this.firstClickIgnored = false; // 첫 클릭 무시 후, 이후부터는 외부 클릭 감지
+                  this.firstClickIgnored = false;
                   return;
               }
   
-              console.log("외부 영역 터치 감지:", event.target);
-  
-              if (event.target !== input) {
+              if (event.target !== this.nativeKeyboardInput) {
                   console.log("키보드를 닫습니다.");
                   window.unityInstanceRef.SendMessage('GameManager', 'CloseKeyboard', "");
-                  //LibraryManager.library.closeNativeKeyboard();
               }
-          }
+          }.bind(this);
   
-          document.addEventListener("touchstart", outsideClickListener.bind(this));
-          console.log("외부 터치 이벤트 리스너 추가됨");
+          // 터치와 클릭 이벤트 모두 처리
+          document.addEventListener("touchstart", this.outsideClickListener);
+          document.addEventListener("click", this.outsideClickListener);
+          console.log("외부 클릭/터치 이벤트 리스너 추가됨");
       }
 
   function __isLeapYear(year) {
