@@ -15445,6 +15445,7 @@ var ASM_CONSTS = {
   
           console.log("showNativeKeyboard 호출됨");
           this.isKeyboardOpen = true; // 키보드 열림 상태로 설정
+          this.firstClickIgnored = true; // 최초 클릭은 무시
   
           // 기존 input 요소 제거
           var existingInput = document.getElementById("nativeKeyboardInput");
@@ -15471,27 +15472,14 @@ var ASM_CONSTS = {
               unityInstance.SendMessage('GameManager', 'ReceiveInput', inputValue);
           });
   
-          // 외부 터치 시 키보드를 닫기 위한 이벤트 리스너
-          function closeKeyboard() {
-              if (input) {
-                  console.log("closeKeyboard 호출됨 - 가상 키보드를 닫는 중");
-                  input.style.display = "none";
-                  input.blur();
-                  setTimeout(function() {
-                      if (document.body.contains(input)) {
-                          console.log("input 요소가 존재하여 제거됨");
-                          document.body.removeChild(input);
-                      }
-                  }, 100);
-  
-                  document.removeEventListener("touchstart", outsideClickListener);
-                  this.isKeyboardOpen = false; // 키보드 닫힘 상태로 설정
-                  console.log("외부 터치 이벤트 리스너 제거됨 및 키보드 닫힘 상태 설정");
-              }
-          }
-  
-          // 외부 터치 시 키보드를 닫기 위한 이벤트 리스너
+          // 외부 클릭 시 키보드를 닫기 위한 이벤트 리스너
           function outsideClickListener(event) {
+              if (this.firstClickIgnored) {
+                  console.log("최초 클릭 무시");
+                  this.firstClickIgnored = false; // 첫 클릭 무시 후, 이후부터는 외부 클릭 감지
+                  return;
+              }
+  
               console.log("외부 영역 터치 감지:", event.target);
   
               if (event.target !== input) {
@@ -15501,7 +15489,7 @@ var ASM_CONSTS = {
               }
           }
   
-          document.addEventListener("touchstart", outsideClickListener);
+          document.addEventListener("touchstart", outsideClickListener.bind(this));
           console.log("외부 터치 이벤트 리스너 추가됨");
       }
 
