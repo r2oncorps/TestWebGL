@@ -15466,7 +15466,7 @@ var ASM_CONSTS = {
               if (event.target !== input) {
                   console.log("키보드를 닫습니다.");
                   window.unityInstanceRef.SendMessage('GameManager', 'CloseKeyboard', "");
-                  this.closeNativeKeyboard();
+                  LibraryManager.library.closeNativeKeyboard();
               }
           }
   
