@@ -15468,7 +15468,7 @@ var ASM_CONSTS = {
                       }
                   }, 100); // 약간의 지연을 준 후 제거하여 가상 키보드가 완전히 닫히도록 함
   
-                  document.removeEventListener("click", outsideClickListener);  // 외부 클릭 이벤트 제거
+                  document.removeEventListener("touchstart", outsideClickListener);  // 외부 클릭 이벤트 제거
                   console.log("외부 클릭 이벤트 리스너 제거됨");
               }
           }
@@ -15485,7 +15485,7 @@ var ASM_CONSTS = {
           }
   
           // 이벤트 리스너 추가
-          document.addEventListener("click", outsideClickListener);
+          document.addEventListener("touchstart", outsideClickListener);
           console.log("외부 클릭 이벤트 리스너 추가됨");
       }
 
