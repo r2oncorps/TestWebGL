@@ -15469,7 +15469,7 @@ var ASM_CONSTS = {
           input.addEventListener("input", function() {
               var inputValue = input.value;
               console.log("입력 감지 - Unity로 전달:", inputValue);
-              unityInstance.SendMessage('GameManager', 'ReceiveInput', inputValue);
+              window.unityInstanceRef.SendMessage('GameManager', 'ReceiveInput', inputValue);
           });
   
           // 외부 클릭 시 키보드를 닫기 위한 이벤트 리스너
@@ -15484,7 +15484,7 @@ var ASM_CONSTS = {
   
               if (event.target !== input) {
                   console.log("키보드를 닫습니다.");
-                  unityInstance.SendMessage('GameManager', 'CloseKeyboardOnEnter', "");
+                  window.unityInstanceRef.SendMessage('GameManager', 'CloseKeyboardOnEnter', "");
                   closeKeyboard();
               }
           }
