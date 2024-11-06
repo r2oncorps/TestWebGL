@@ -1994,13 +1994,13 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  3596832: function() {return Module.webglContextAttributes.premultipliedAlpha;},  
- 3596893: function() {return Module.webglContextAttributes.preserveDrawingBuffer;},  
- 3596957: function() {return Module.webglContextAttributes.powerPreference;},  
- 3597015: function() {Module['emscripten_get_now_backup'] = performance.now;},  
- 3597070: function($0) {performance.now = function() { return $0; };},  
- 3597118: function($0) {performance.now = function() { return $0; };},  
- 3597166: function() {performance.now = Module['emscripten_get_now_backup'];}
+  3596864: function() {return Module.webglContextAttributes.premultipliedAlpha;},  
+ 3596925: function() {return Module.webglContextAttributes.preserveDrawingBuffer;},  
+ 3596989: function() {return Module.webglContextAttributes.powerPreference;},  
+ 3597047: function() {Module['emscripten_get_now_backup'] = performance.now;},  
+ 3597102: function($0) {performance.now = function() { return $0; };},  
+ 3597150: function($0) {performance.now = function() { return $0; };},  
+ 3597198: function() {performance.now = Module['emscripten_get_now_backup'];}
 };
 
 
@@ -9812,6 +9812,25 @@ var ASM_CONSTS = {
       abort('native code called abort()');
     }
 
+  function _closeNativeKeyboard() {
+          console.log("closeNativeKeyboard 호출됨");
+          var input = document.getElementById("nativeKeyboardInput");
+          if (input) {
+              console.log("closeNativeKeyboard에서 input 요소를 찾음 - 가상 키보드 닫기 시작");
+              input.style.display = "none";
+              input.blur();
+              setTimeout(function() {
+                  if (document.body.contains(input)) {
+                      console.log("input 요소가 존재하여 제거됨");
+                      document.body.removeChild(input);
+                  }
+              }, 100);
+          } else {
+              console.log("closeNativeKeyboard에서 input 요소를 찾지 못함");
+          }
+          this.isKeyboardOpen = false; // 키보드 닫힘 상태로 설정
+      }
+
   var readAsmConstArgsArray = [];
   function readAsmConstArgs(sigPtr, buf) {
       ;
@@ -15466,7 +15485,7 @@ var ASM_CONSTS = {
               if (event.target !== input) {
                   console.log("키보드를 닫습니다.");
                   window.unityInstanceRef.SendMessage('GameManager', 'CloseKeyboard', "");
-                  LibraryManager.library.closeNativeKeyboard();
+                  //LibraryManager.library.closeNativeKeyboard();
               }
           }
   
@@ -16175,6 +16194,7 @@ var asmLibraryArg = {
   "_munmap_js": __munmap_js,
   "_tzset_js": __tzset_js,
   "abort": _abort,
+  "closeNativeKeyboard": _closeNativeKeyboard,
   "emscripten_asm_const_int": _emscripten_asm_const_int,
   "emscripten_asm_const_int_sync_on_main_thread": _emscripten_asm_const_int_sync_on_main_thread,
   "emscripten_cancel_main_loop": _emscripten_cancel_main_loop,
