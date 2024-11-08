@@ -1994,13 +1994,13 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  3596864: function() {return Module.webglContextAttributes.premultipliedAlpha;},  
- 3596925: function() {return Module.webglContextAttributes.preserveDrawingBuffer;},  
- 3596989: function() {return Module.webglContextAttributes.powerPreference;},  
- 3597047: function() {Module['emscripten_get_now_backup'] = performance.now;},  
- 3597102: function($0) {performance.now = function() { return $0; };},  
- 3597150: function($0) {performance.now = function() { return $0; };},  
- 3597198: function() {performance.now = Module['emscripten_get_now_backup'];}
+  3596848: function() {return Module.webglContextAttributes.premultipliedAlpha;},  
+ 3596909: function() {return Module.webglContextAttributes.preserveDrawingBuffer;},  
+ 3596973: function() {return Module.webglContextAttributes.powerPreference;},  
+ 3597031: function() {Module['emscripten_get_now_backup'] = performance.now;},  
+ 3597086: function($0) {performance.now = function() { return $0; };},  
+ 3597134: function($0) {performance.now = function() { return $0; };},  
+ 3597182: function() {performance.now = Module['emscripten_get_now_backup'];}
 };
 
 
@@ -9812,29 +9812,6 @@ var ASM_CONSTS = {
       abort('native code called abort()');
     }
 
-  function _closeNativeKeyboard() {
-          console.log("closeNativeKeyboard 호출됨");
-          if (this.nativeKeyboardInput) {
-              console.log("closeNativeKeyboard에서 input 요소를 찾음 - 가상 키보드 닫기 시작");
-              this.nativeKeyboardInput.style.display = "none";
-              this.nativeKeyboardInput.blur();
-              console.log("input 요소 숨김 및 블러 처리");
-          } else {
-              console.log("closeNativeKeyboard에서 input 요소를 찾지 못함");
-          }
-  
-          // 이벤트 리스너 제거
-          if (this.outsideClickListener) {
-              document.removeEventListener("touchstart", this.outsideClickListener);
-              document.removeEventListener("click", this.outsideClickListener);
-              this.outsideClickListener = null;
-              console.log("외부 클릭/터치 이벤트 리스너 제거됨");
-          }
-  
-          this.isKeyboardOpen = false;
-          console.log("키보드 상태를 닫힘으로 설정, 현재 상태:", this.isKeyboardOpen);
-      }
-
   var readAsmConstArgsArray = [];
   function readAsmConstArgs(sigPtr, buf) {
       ;
@@ -15441,70 +15418,6 @@ var ASM_CONSTS = {
       setTempRet0(val);
     }
 
-  function _showNativeKeyboard() {
-          console.log("showNativeKeyboard 함수 호출됨, 현재 상태:", this.isKeyboardOpen);
-          
-          if (this.isKeyboardOpen) {
-              console.log("키보드가 이미 열려 있음, 함수 종료");
-              return;
-          }
-  
-          if (!this.nativeKeyboardInput) {
-              // 인풋 요소가 없는 경우에만 새로 생성
-              this.nativeKeyboardInput = document.createElement("input");
-              this.nativeKeyboardInput.type = "text";
-              this.nativeKeyboardInput.id = "nativeKeyboardInput";
-              this.nativeKeyboardInput.style.position = "absolute";
-              this.nativeKeyboardInput.style.top = "-100px";
-              this.nativeKeyboardInput.style.opacity = 0;
-              document.body.appendChild(this.nativeKeyboardInput);
-  
-              // 입력 발생 시 Unity로 데이터 전송
-              this.nativeKeyboardInput.addEventListener("input", function() {
-                  var inputValue = this.nativeKeyboardInput.value;
-                  console.log("입력 감지 - Unity로 전달:", inputValue);
-                  window.unityInstanceRef.SendMessage('GameManager', 'ReceiveInput', inputValue);
-              }.bind(this));
-  
-              console.log("새로운 input 요소 생성");
-          } else {
-              console.log("기존 input 요소 재사용");
-          }
-  
-          this.nativeKeyboardInput.style.display = "block";
-          this.nativeKeyboardInput.focus();
-          console.log("input 요소에 포커스 설정");
-  
-          this.isKeyboardOpen = true;
-          this.firstClickIgnored = true;
-  
-          // 기존 리스너 제거
-          if (this.outsideClickListener) {
-              document.removeEventListener("touchstart", this.outsideClickListener);
-              document.removeEventListener("click", this.outsideClickListener);
-          }
-  
-          // 새로운 외부 클릭 이벤트 리스너
-          this.outsideClickListener = function(event) {
-              console.log("외부 영역 클릭/터치 감지:", event.target);
-              if (this.firstClickIgnored) {
-                  console.log("최초 클릭 무시");
-                  this.firstClickIgnored = false;
-                  return;
-              }
-  
-              if (event.target !== this.nativeKeyboardInput) {
-                  console.log("키보드를 닫습니다.");
-                  window.unityInstanceRef.SendMessage('GameManager', 'CloseKeyboard', "");
-              }
-          }.bind(this);
-  
-          // 터치와 클릭 이벤트 모두 처리
-          document.addEventListener("touchstart", this.outsideClickListener);
-          document.addEventListener("click", this.outsideClickListener);
-          console.log("외부 클릭/터치 이벤트 리스너 추가됨");
-      }
-
   function __isLeapYear(year) {
         return year%4 === 0 && (year%100 !== 0 || year%400 === 0);
     }
@@ -16206,7 +16119,6 @@ var asmLibraryArg = {
   "_munmap_js": __munmap_js,
   "_tzset_js": __tzset_js,
   "abort": _abort,
-  "closeNativeKeyboard": _closeNativeKeyboard,
   "emscripten_asm_const_int": _emscripten_asm_const_int,
   "emscripten_asm_const_int_sync_on_main_thread": _emscripten_asm_const_int_sync_on_main_thread,
   "emscripten_cancel_main_loop": _emscripten_cancel_main_loop,
@@ -16511,7 +16423,6 @@ var asmLibraryArg = {
   "invoke_vjjjiiii": invoke_vjjjiiii,
   "llvm_eh_typeid_for": _llvm_eh_typeid_for,
   "setTempRet0": _setTempRet0,
-  "showNativeKeyboard": _showNativeKeyboard,
   "strftime": _strftime
 };
 var asm = createWasm();
