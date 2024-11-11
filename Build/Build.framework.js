@@ -9823,12 +9823,10 @@ var ASM_CONSTS = {
               console.log("closeNativeKeyboard에서 input 요소를 찾지 못함");
           }
   
-          // body 스타일 복원
-          document.body.style.height = this.originalBodyHeight;
-          document.body.style.overflow = this.originalBodyScroll;
-  
+          // 이벤트 리스너 제거
           if (this.outsideClickListener) {
               document.removeEventListener("touchstart", this.outsideClickListener);
+              document.removeEventListener("click", this.outsideClickListener);
               this.outsideClickListener = null;
               console.log("외부 클릭/터치 이벤트 리스너 제거됨");
           }
@@ -15451,26 +15449,17 @@ var ASM_CONSTS = {
               return;
           }
   
-          // 현재 body의 높이와 스크롤 위치 저장
-          this.originalBodyHeight = document.body.style.height;
-          this.originalBodyScroll = document.body.style.overflow;
-  
-          // body의 스크롤을 막고 높이를 고정
-          document.body.style.height = '100%';
-          document.body.style.overflow = 'hidden';
-  
           if (!this.nativeKeyboardInput) {
+              // 인풋 요소가 없는 경우에만 새로 생성
               this.nativeKeyboardInput = document.createElement("input");
               this.nativeKeyboardInput.type = "text";
               this.nativeKeyboardInput.id = "nativeKeyboardInput";
-              this.nativeKeyboardInput.style.position = "fixed";  // absolute 대신 fixed 사용
-              this.nativeKeyboardInput.style.bottom = "0";        // 화면 하단에 위치
-              this.nativeKeyboardInput.style.left = "0";
-              this.nativeKeyboardInput.style.width = "100%";
+              this.nativeKeyboardInput.style.position = "absolute";
+              this.nativeKeyboardInput.style.top = "-100px";
               this.nativeKeyboardInput.style.opacity = 0;
-              this.nativeKeyboardInput.style.height = "1px";      // 최소한의 높이
               document.body.appendChild(this.nativeKeyboardInput);
   
+              // 입력 발생 시 Unity로 데이터 전송
               this.nativeKeyboardInput.addEventListener("input", function() {
                   var inputValue = this.nativeKeyboardInput.value;
                   console.log("입력 감지 - Unity로 전달:", inputValue);
@@ -15489,10 +15478,13 @@ var ASM_CONSTS = {
           this.isKeyboardOpen = true;
           this.firstClickIgnored = true;
   
+          // 기존 리스너 제거
           if (this.outsideClickListener) {
               document.removeEventListener("touchstart", this.outsideClickListener);
+              document.removeEventListener("click", this.outsideClickListener);
           }
   
+          // 새로운 외부 클릭 이벤트 리스너
           this.outsideClickListener = function(event) {
               console.log("외부 영역 클릭/터치 감지:", event.target);
               if (this.firstClickIgnored) {
@@ -15507,7 +15499,9 @@ var ASM_CONSTS = {
               }
           }.bind(this);
   
+          // 터치와 클릭 이벤트 모두 처리
           document.addEventListener("touchstart", this.outsideClickListener);
+          //document.addEventListener("click", this.outsideClickListener);
           console.log("외부 클릭/터치 이벤트 리스너 추가됨");
       }
 
